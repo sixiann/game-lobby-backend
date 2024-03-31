@@ -11,6 +11,12 @@ lobbies = {}
 current_lobby_id = 0
 max_players = 3
 
+
+# #TODO: 
+# 1. change base.html to reflect common code
+# 2. change lobby.html createMessage to be jquery
+# 3. add leave_lobby function 
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -28,7 +34,7 @@ def create_lobby():
 
     lobby_id = str(current_lobby_id)
     lobbies[lobby_id] = {
-        "players": 0,
+        "players": [],
         "lobby_details": lobby_details,
         "messages": []
     }
@@ -80,9 +86,9 @@ def connect():
 
     join_room(lobby_id)
     send({"message": f"{player_id} has entered the lobby"}, to=lobby_id)
-    lobbies[lobby_id]['players'] += 1
+    lobbies[lobby_id]['players'].append(player_id)
 
-    if lobbies[lobby_id]['players'] >= max_players:
+    if len(lobbies[lobby_id]['players']) >= max_players:
         send({"message": "Max players reached. Game is beginning"}, to=lobby_id)
         del lobbies[lobby_id] 
 
@@ -94,8 +100,8 @@ def disconnect():
     leave_room(lobby_id)
 
     if lobby_id in lobbies:
-        lobbies[lobby_id]['players'] -= 1
-        if lobbies[lobby_id]['players'] <= 0:
+        lobbies[lobby_id]['players'].remove(player_id)
+        if len(lobbies[lobby_id]['players']) <= 0:
             del lobbies[lobby_id] 
     
     send({"message": f"{player_id} has left the lobby"}, to=lobby_id)
