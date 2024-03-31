@@ -2,18 +2,29 @@ import socketio
 import threading
 import time
 
-# Function to simulate a client creating a lobby
-def create_lobby(client, player_id, lobby_details):
+base_url = 'http://localhost:5000'
+
+# Function to test a client creating a lobby
+def create_lobby(client, data):
     @client.event
     def connect():
-        print(f"Client {player_id} connected to the server.")
-        client.emit('create_lobby', {'player_id': player_id, 'lobby_details': lobby_details})
+        print(f"Client connected to the server.")
+        client.emit('create_lobby', data)
 
     @client.event
     def message(data):
-        print(f"Message received by {player_id}: {data['message']}")
+        if 'error' in data:
+            print("Error:", data['error'])
+        else:
+            print(f"Message received by {player_id}: {data['message']}")
     
-    client.connect('http://localhost:5000')  # Adjust the URL to your server
+    client.connect(base_url)
+
+    try:
+        client.wait()
+    except KeyboardInterrupt:
+        print("Script interrupted by user.")
+    
 
 # Function to simulate a client joining a lobby
 def join_lobby(client, player_id, lobby_id):
@@ -26,7 +37,7 @@ def join_lobby(client, player_id, lobby_id):
     def message(data):
         print(f"Message received by {player_id}: {data['message']}")
     
-    client.connect('http://localhost:5000')  # Adjust the URL to your server
+    client.connect(base_url)
 
 # Function to simulate a client leaving a lobby
 def leave_lobby(client, player_id, lobby_id):
@@ -40,7 +51,7 @@ def leave_lobby(client, player_id, lobby_id):
     def message(data):
         print(f"Message received by {player_id}: {data['message']}")
     
-    client.connect('http://localhost:5000')  # Adjust the URL to your server
+    client.connect(base_url)
     try:
         client.wait()
     except KeyboardInterrupt:
@@ -50,78 +61,58 @@ def leave_lobby(client, player_id, lobby_id):
 client1 = socketio.Client()
 client2 = socketio.Client()
 client3 = socketio.Client()
-
-# Start the first client to create a lobby
-threading.Thread(target=create_lobby, args=(client1, 'player1', 'Example Lobby Details')).start()
-
-# Give the server some time to process the creation
-time.sleep(2)
-
-# Start the second client to join the lobby
-threading.Thread(target=join_lobby, args=(client2, 'player2', '1')).start()  # Assuming '1' is the lobby_id
-
-# Give the server some time to process the join
-time.sleep(2)
-
-# Use the second client to leave the lobby
-threading.Thread(target=leave_lobby, args=(client3, 'player3', '1')).start()  # Assuming '1' is the lobby_id
-
-time.sleep(2)
+client4 = socketio.Client()
+client5 = socketio.Client()
 
 
-# import socketio
+#1. Test invalid create lobbies 
+print("<---------Testing invalid lobby creations--------->")
+invalid_cases = [
+    {'lobby_details': 'Example Lobby Details'},                     # missing player_id 
+    {'player_id': '1'},                                             # missing lobby_details
+    {'player_id': '100', 'lobby_details': 'Example Lobby Details'}, # invalid player_id 
+]
 
-# # Create a Socket.IO client
-# sio = socketio.Client()
+def run_test(case):
+    client = socketio.Client()
 
-# @sio.event
-# def connect():
-#     print("I'm connected to the server.")
+    # Setup event handlers before connecting
+    create_lobby(client, case)
 
-# @sio.event
-# def connect_error(data):
-#     print("The connection failed!")
+    # Connect, wait for operations to complete, then disconnect
+    client.connect(base_url)
+    time.sleep(2)  # Adjust the sleep time as needed for your operations to complete
+    client.disconnect()
 
-# @sio.event
-# def disconnect():
-#     print("I'm disconnected from the server.")
+# Create a thread for each test case
+for case in invalid_cases:
+    threading.Thread(target=run_test, args=(case,)).start()
 
-# @sio.event
-# def message(data):
-#     print("Real Time Message received:", data['message'])
-
-# # Connect to the Socket.IO server
-# sio.connect('http://localhost:5000')  # Update with your actual server URL
-# #
-# def test_create_lobby(data):
-#     sio.emit("create_lobby", data)
-# # Example data to send when creating or joining a lobby
-# data = {
-#   "player_id": "player123",
-#   "lobby_details": "Example Lobby Details"  # Only needed if creating a new lobby
-# }
-
-# # Emit the 'create_or_join_lobby' event to the server with the data
-# sio.emit("create_lobby", data)
-
-# # Keep the script running to listen for responses
-# try:
-#     sio.wait()
-# except KeyboardInterrupt:
-#     print("Script interrupted by user.")
+# for case in invalid_cases:
+#     test_client = socketio.Client()
+#     threading.Thread(target=create_lobby, args=(test_client, case, False)).start()
+#     test_client.disconnect()
+# threading.Thread(target=create_lobby, args=(client1, {'player_id': 'player123', 'lobby_details': 'Example Lobby Details'})).start() #invalid player_id
+# threading.Thread(target=create_lobby, args=(client1, '25', 'Example Lobby Details')).start() #invalid player_id
 
 
-# # // const socket = io.connect();
 
-# # // // Example data to send when creating or joining a lobby
-# # // const data = {
-# # //   player_id: "player123",
-# # //   lobby_details: "Example Lobby Details"  // Only needed if creating a new lobby
-# # // };
 
-# # // socket.emit("create_lobby", data);
 
-# # // // Listen for messages
-# # // socket.on("message", function(data) {
-# # //   console.log(data.message);
-# # // });
+
+# # Start the first client to create a lobby
+# threading.Thread(target=create_lobby, args=(client1, '1', 'Example Lobby Details')).start()
+
+# # Give the server some time to process the creation
+# time.sleep(2)
+
+# # Start the second client to join the lobby
+# threading.Thread(target=join_lobby, args=(client2, '2', '1')).start()  # Assuming '1' is the lobby_id
+
+# # Give the server some time to process the join
+# time.sleep(2)
+
+# # Use the second client to leave the lobby
+# threading.Thread(target=leave_lobby, args=(client3, '3', '1')).start()  # Assuming '1' is the lobby_id
+
+# time.sleep(2)

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask import Flask, request, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
 
 
@@ -6,36 +6,80 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 app.config["SECRET_KEY"] = "secret"
 
+#Data structures to store data  
+lobbies = {} #maps lobbies to the list of players
+players = {} #maps players to the lobby they are in , None if not in lobby
+current_lobby_id = 1 #Sets the lobby_id of new lobbies. Using simple integer for easier testing
 
-lobbies = {}
-current_lobby_id = 1
+
+#insert 20 valid registered players for dummy data
+for i in range(20):
+    players[str(i)] = None
+
+#maximum number of players per lobby - change if needed
 max_players = 5
 
+
+#socket for create lobby 
 @socketio.on('create_lobby')
 def create_lobby(data):
+    #declare global to modify global variables and not local variables
+    global lobbies
     global current_lobby_id 
 
+    #check if player_id is in data
+    if "player_id" not in data:
+        send({"error": "Missing required parameter: player_id"}, to=request.sid)
+        return
+
+    #check if lobby_details is in data
+    if "lobby_details" not in data:
+        send({"error": "Missing required parameter: lobby_details"}, to=request.sid)
+        return
+
+    #extract player_id and lobby_details
     player_id = data['player_id']
     lobby_details = data['lobby_details']
 
+    #check if player_id is a valid registered player
+    if player_id not in players: 
+        send({"error": "Invalid player_id"}, to=request.sid)
+        return
+    
+    #check if player_id is already in a lobby 
+    if players[player_id]: 
+        send({"error": f"{player_id} is already in a lobby"}, to=request.sid)
+        return
+
+    #create a new lobby with current_lobby_id
     lobby_id = str(current_lobby_id)
     lobbies[lobby_id] = {
-        "players": [player_id],
+        "players": [player_id], #initialize list of players with player_id who created it
         "lobby_details": lobby_details,
-        "messages": []
+        "messages": [] #initialize lobby messages for client to display
     }
+
+    #increment current_lobby_id for the next lobby
     current_lobby_id += 1
 
+    #join the socketio room associated with lobby_id
     join_room(lobby_id)
-    send({"message": f"{player_id} has created a lobby"}, to=lobby_id)
-    return {"lobby_id": lobby_id, 
-            "lobby_details": lobbies[lobby_id]['lobby_details'], 
-            "messages": lobbies[lobby_id]["messages"]}
 
+    #send message that player_id has created a lobby to lobby_id 
+    send({"message": f"{player_id} has created a lobby"}, to=lobby_id)
+
+    #return information to the client #modify this based on frontend needs
+    return lobbies[lobby_id]
+
+
+#socket for joining lobby
 @socketio.on('join_lobby')
 def join_lobby(data):
+    #declare global to modify global variables and not local variables
+    global lobbies
+
     player_id = data['player_id']
-    lobby_id = data['lobby_id']
+    lobby_id = str(data['lobby_id'])
 
     join_room(lobby_id)
     send({"message": f"{player_id} has entered the lobby"}, to=lobby_id)
@@ -53,6 +97,9 @@ def join_lobby(data):
 #leaving lobby
 @socketio.on("leave_lobby")
 def leave_lobby(data):
+    #declare global to modify global variables and not local variables
+    global lobbies
+
     player_id = data['player_id']
     lobby_id = data['lobby_id']
 
