@@ -69,7 +69,6 @@ def create_lobby(data):
     lobbies[lobby_id] = {
         "players": [player_id], #initialize list of players with player_id who created it
         "lobby_details": lobby_details,
-        "messages": [] #initialize lobby messages for client to display
     }
 
     #associate player with lobby

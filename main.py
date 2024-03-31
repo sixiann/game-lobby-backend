@@ -1,4 +1,5 @@
 import socketio
+import requests
 import threading
 import time
 
@@ -112,4 +113,17 @@ if __name__ == "__main__":
         ('leave_lobby', {'player_id': '1', 'lobby_id': '100'}, server_url),                                                 # invalid lobby_id 
     ]
     run_tests(invalid_leave_actions)
-    print("\n" + " Testing invalid leave lobby cases complete ".center(80, '-'))
+    print("\n" + " Testing invalid leave lobby cases complete ".center(80, '-')  + "\n")
+
+
+    #5. Testing get all lobbies 
+    print("\n" + " Testing get all lobbies ".center(80, '-'))
+    create_actions = [
+        ('create_lobby', {'player_id': '1', 'lobby_details': 'my first lobby'}, server_url),                            #1st player creates lobby
+        ('create_lobby', {'player_id': '2', 'lobby_details': 'another lobby'}, server_url),                            #2nd player creates lobby    
+    ]
+    run_tests(create_actions)
+    response = requests.get(f"{server_url}/get_lobbies")
+    print("\nResponse from /get_lobbies:")
+    print(response.status_code, response.json())
+    print("\n" + " Testing get all lobbies complete ".center(80, '-'))
