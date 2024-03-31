@@ -92,6 +92,29 @@ def connect():
         send({"message": "Max players reached. Game is beginning"}, to=lobby_id)
         del lobbies[lobby_id] 
 
+
+@app.route('/leave_lobby', methods = ['POST'])
+def leave_lobby():
+    disconnect()
+
+#leaving lobby
+@socketio.on("leave_lobby")
+def leave_lobby():
+    lobby_id = session.get("lobby_id")
+    player_id = session.get("player_id")
+
+    leave_room(lobby_id)
+
+    if lobby_id in lobbies:
+        # Ensure player_id is in the list to avoid ValueError
+        if player_id in lobbies[lobby_id]['players']:
+            lobbies[lobby_id]['players'].remove(player_id)
+            if len(lobbies[lobby_id]['players']) == 0:
+                del lobbies[lobby_id]
+    
+    send({"message": f"{player_id} has left the lobby"}, to=lobby_id)
+
+
 @socketio.on("disconnect")
 def disconnect():
     lobby_id = session.get("lobby_id")
