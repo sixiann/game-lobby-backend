@@ -9,12 +9,14 @@ app.config["SECRET_KEY"] = "secret"
 
 lobbies = {}
 current_lobby_id = 0
-max_players = 10
+max_players = 3
 
 @app.route("/")
 def home():
     return render_template("home.html")
 
+
+#create a lobby, given player_id and lobby_details
 @app.route("/create_lobby", methods = ['POST'])
 def create_lobby():
     global current_lobby_id
@@ -41,15 +43,6 @@ def create_lobby():
     return jsonify({'redirect_url': url_for('lobby', code=lobby_id, messages=lobbies[lobby_id]["messages"])}), 201
 
 
-@app.route("/lobby")
-def lobby():
-    lobby_id = session.get("lobby_id")
-    if lobby_id is None or session.get("player_id") is None or lobby_id not in lobbies:
-        print("here")
-        return redirect(url_for("home"))
-
-    return render_template("lobby.html", code=lobby_id, messages=lobbies[lobby_id]["messages"])
-
 @app.route("/join_lobby", methods = ['POST'])
 def join_lobby():
     json_data = request.get_json()
@@ -65,25 +58,20 @@ def join_lobby():
 
 
 
+@app.route("/lobby")
+def lobby():
+    lobby_id = session.get("lobby_id")
+    if lobby_id is None or session.get("player_id") is None or lobby_id not in lobbies:
+        print("here")
+        return redirect(url_for("home"))
+
+    return render_template("lobby.html", code=lobby_id, messages=lobbies[lobby_id]["messages"])
+
 #list all lobbies
 @app.route('/get_lobbies', methods=['GET'])
 def get_lobbies():
     return jsonify(lobbies), 200
 
-
-@socketio.on("message")
-def message(data):
-    lobby_id = session.get("lobby_id")
-    if lobby_id not in lobbies:
-        return 
-    
-    content = {
-        "player_id": session.get("player_id"),
-        "message": data["data"]
-    }
-    send(content, to=lobby_id)
-    lobbies[lobby_id]["messages"].append(content)
-    print(f"{session.get('name')} said: {data['data']}")
 
 @socketio.on("connect")
 def connect():
@@ -95,7 +83,7 @@ def connect():
     lobbies[lobby_id]['players'] += 1
 
     if lobbies[lobby_id]['players'] >= max_players:
-        send({"message": "Game is beginning"}, to=lobby_id)
+        send({"message": "Max players reached. Game is beginning"}, to=lobby_id)
         del lobbies[lobby_id] 
 
 @socketio.on("disconnect")
