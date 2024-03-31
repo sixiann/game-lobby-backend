@@ -108,7 +108,6 @@ def join_lobby(data):
         send({"error": "Invalid lobby_id, does not exist"}, to=request.sid)
         return
 
-    
     #check if player_id is already in a lobby 
     if players[player_id]: 
         send({"error": f"{player_id} is already in a lobby"}, to=request.sid)
@@ -126,7 +125,7 @@ def join_lobby(data):
 
     #check if number of players exceeds max players and start game if True
     if len(lobbies[lobby_id]['players']) >= max_players:
-        send({"message": "Max players reached. Game is beginning"}, to=lobby_id)
+        send({"message": f"Max {max_players} players reached. Game is beginning"}, to=lobby_id)
         del lobbies[lobby_id] #delete the lobby after starting game 
         leave_room(lobby_id) #make everyone leave the lobby
     
@@ -138,19 +137,50 @@ def join_lobby(data):
 def leave_lobby(data):
     #declare global to modify global variables and not local variables
     global lobbies
+    global players
 
-    player_id = data['player_id']
-    lobby_id = data['lobby_id']
+    #check if player_id is in data
+    if "player_id" not in data:
+        send({"error": "Missing required parameter: player_id"}, to=request.sid)
+        return
 
+    #check if lobby_id is in data
+    if "lobby_id" not in data:
+        send({"error": "Missing required parameter: lobby_id"}, to=request.sid)
+        return
+    
+    #extract player_id and lobby_id and ensure correct formatting
+    player_id = str(data['player_id'])
+    lobby_id = str(data['lobby_id'])
+
+    #check if player_id is a valid registered player
+    if player_id not in players: 
+        send({"error": "Invalid player_id"}, to=request.sid)
+        return
+    
+    #check if lobby_id is a valid existing lobby
+    if lobby_id not in lobbies:
+        send({"error": "Invalid lobby_id, does not exist"}, to=request.sid)
+        return
+
+    #check if player_id is not in this lobby
+    if players[player_id] != lobby_id: 
+        send({"error": f"{player_id} is not in {lobby_id}"}, to=request.sid)
+        return
+
+    #leave the socketio room associated with lobby_id
     leave_room(lobby_id)
+    
+    #send message that player_id has left lobby_id to lobby_id 
     send({"message": f"{player_id} has left the lobby"}, to=lobby_id)
 
+    #modify lobbies and players to remove the player_id
+    lobbies[lobby_id]['players'].remove(player_id)
+    players[player_id] = None 
 
-    if lobby_id in lobbies:
-        if player_id in lobbies[lobby_id]['players']:
-            lobbies[lobby_id]['players'].remove(player_id)
-            if len(lobbies[lobby_id]['players']) <= 0:
-                del lobbies[lobby_id]
+    #delete the lobby if there are no more players
+    if len(lobbies[lobby_id]['players']) <= 0:
+        del lobbies[lobby_id]
     
 
 #list all lobbies
