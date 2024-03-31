@@ -20,6 +20,18 @@ for i in range(20):
 max_players = 5
 
 
+def start_game(lobby_id): 
+    send({"message": f"Max {max_players} players reached. Game is beginning"}, to=lobby_id)
+    #remove everyone from the lobby 
+    for player_id in lobbies[lobby_id]['players']:
+        players[player_id] = None
+    
+    #delete the lobby after starting game
+    del lobbies[lobby_id]
+
+    #make everyone leave the socketio room
+    leave_room(lobby_id) 
+
 #socket for create lobby 
 @socketio.on('create_lobby')
 def create_lobby(data):
@@ -125,9 +137,7 @@ def join_lobby(data):
 
     #check if number of players exceeds max players and start game if True
     if len(lobbies[lobby_id]['players']) >= max_players:
-        send({"message": f"Max {max_players} players reached. Game is beginning"}, to=lobby_id)
-        del lobbies[lobby_id] #delete the lobby after starting game 
-        leave_room(lobby_id) #make everyone leave the lobby
+        start_game(lobby_id)
     
     #return information to the client #modify this based on frontend's needs
     return lobbies[lobby_id]
