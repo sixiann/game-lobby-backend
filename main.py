@@ -2,84 +2,55 @@ import socketio
 import threading
 import time
 
-base_url = 'http://localhost:5000'
-# Function to simulate a client creating a lobby
-def create_lobby(client, player_id, lobby_details):
+server_url = 'http://localhost:5000'
+
+def perform_socketio_action(client, action, data, server_url):
     @client.event
     def connect():
-        print(f"Client {player_id} connected to the server.")
-        client.emit('create_lobby', {'player_id': player_id, 'lobby_details': lobby_details})
+        print(f"\nTesting {action}...")
+        if action != 'leave_lobby':
+            client.emit(action, data)
+        else:
+            client.emit('join_lobby', data)
+            time.sleep(1)
+            client.emit('leave_lobby', data)
 
     @client.event
-    def message(data):
-        if 'message' in data:
-            print(f"Message received by {player_id}: {data['message']}")
+    def message(response_data):
+        if 'error' in response_data:
+            print("Error:", response_data['error'])
+        elif 'message' in response_data:
+            print(f"Notif received by {data['player_id']}: {response_data['message']}")
+    
+    client.connect(server_url)
 
-    client.connect(base_url)  # Adjust the URL to your server
+    try:
+        client.wait()
+    except KeyboardInterrupt:
+        print("Script interrupted by user.")
 
-# Function to simulate a client joining a lobby
-def join_lobby(client, player_id, lobby_id):
-    @client.event
-    def connect():
-        print(f"Client {player_id} connected to the server.")
-        client.emit('join_lobby', {'player_id': player_id, 'lobby_id': lobby_id})
+# Initialize a list to keep track of clients
+clients = []
 
-    @client.event
-    def message(data):
-        if 'message' in data:
-            print(f"Message received by {player_id}: {data['message']}")
+# Create a function for each action
+actions = [
+    ('create_lobby', {'player_id': '1', 'lobby_details': 'my first lobby'}, server_url),
+    ('join_lobby', {'player_id': '2', 'lobby_id': '1'}, server_url),
+    ('leave_lobby', {'player_id': '3', 'lobby_id': '1'}, server_url),
+    ('join_lobby', {'player_id': '4', 'lobby_id': '1'}, server_url),
+    ('join_lobby', {'player_id': '5', 'lobby_id': '1'}, server_url),
+    ('join_lobby', {'player_id': '6', 'lobby_id': '1'}, server_url),
+]
 
-    client.connect(base_url)  # Adjust the URL to your server
-
-# Function to simulate a client joining and leaving a lobby
-def leave_lobby(client, player_id, lobby_id):
-    @client.event
-    def connect():
-        print(f"Client {player_id} connected to the server and is attempting to leave the lobby {lobby_id}.")
-        client.emit('join_lobby', {'player_id': player_id, 'lobby_id': lobby_id})
-        client.emit('leave_lobby', {'player_id': player_id, 'lobby_id': lobby_id})
-
-    @client.event
-    def message(data):
-        if 'message' in data:
-            print(f"Message received by {player_id}: {data['message']}")
-
-    client.connect(base_url)  # Adjust the URL to your server
-
-# Initialize clients
-client1 = socketio.Client()
-client2 = socketio.Client()
-client3 = socketio.Client()
-client4 = socketio.Client()
-client5 = socketio.Client()
-client6 = socketio.Client()
+for action, data, url in actions:
+    client = socketio.Client()
+    clients.append(client)
+    thread = threading.Thread(target=perform_socketio_action, args=(client, action, data, url))
+    thread.start()
+    time.sleep(2)  
 
 
-
-# Start the first client to create a lobby
-threading.Thread(target=create_lobby, args=(client1, '1', 'Example Lobby Details')).start()
-
-# Give the server some time to process the creation
-time.sleep(2)
-
-# Start the second client to join the lobby
-threading.Thread(target=join_lobby, args=(client2, '2', '1')).start()  
-
-# Give the server some time to process the join
-time.sleep(2)
-
-# Use the third client to join and leave the lobby
-threading.Thread(target=leave_lobby, args=(client3, '3', '1')).start() 
-time.sleep(2)
-
-# Start fourth, fifth, and sixth clients to join lobby to reach max players and start game
-threading.Thread(target=join_lobby, args=(client4, '4', '1')).start() 
-time.sleep(2)
-
-threading.Thread(target=join_lobby, args=(client5, '5', '1')).start() 
-time.sleep(2)
-
-threading.Thread(target=join_lobby, args=(client6, '6', '1')).start() 
-time.sleep(2)
-
+print("\nAll actions completed. Exiting script.")
+for client in clients:
+    client.disconnect()
 
