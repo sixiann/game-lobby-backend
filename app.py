@@ -8,11 +8,11 @@ app.config["SECRET_KEY"] = "secret"
 
 #Data structures to store data  
 lobbies = {} #maps lobbies to the list of players
-players = {} #maps players to the lobby they are in , None if not in lobby
+players = {} #maps players to the lobby they are in, None if not in lobby
 current_lobby_id = 1 #Sets the lobby_id of new lobbies. Using simple integer for easier testing
 
 
-#insert 20 valid registered players for dummy data
+#insert 20 valid registered players for dummy data, initially not in lobby
 for i in range(20):
     players[str(i)] = None
 
@@ -25,6 +25,7 @@ max_players = 5
 def create_lobby(data):
     #declare global to modify global variables and not local variables
     global lobbies
+    global players
     global current_lobby_id 
 
     #check if player_id is in data
@@ -37,9 +38,9 @@ def create_lobby(data):
         send({"error": "Missing required parameter: lobby_details"}, to=request.sid)
         return
 
-    #extract player_id and lobby_details
-    player_id = data['player_id']
-    lobby_details = data['lobby_details']
+    #extract player_id and lobby_details and ensure correct formatting
+    player_id = str(data['player_id'])
+    lobby_details = str(data['lobby_details'])
 
     #check if player_id is a valid registered player
     if player_id not in players: 
@@ -59,6 +60,9 @@ def create_lobby(data):
         "messages": [] #initialize lobby messages for client to display
     }
 
+    #associate player with lobby
+    players[player_id] = lobbies
+
     #increment current_lobby_id for the next lobby
     current_lobby_id += 1
 
@@ -68,7 +72,7 @@ def create_lobby(data):
     #send message that player_id has created a lobby to lobby_id 
     send({"message": f"{player_id} has created a lobby"}, to=lobby_id)
 
-    #return information to the client #modify this based on frontend needs
+    #return information to the client #modify this based on frontend's needs
     return lobbies[lobby_id]
 
 
@@ -77,22 +81,57 @@ def create_lobby(data):
 def join_lobby(data):
     #declare global to modify global variables and not local variables
     global lobbies
+    global players
 
-    player_id = data['player_id']
+
+    #check if player_id is in data
+    if "player_id" not in data:
+        send({"error": "Missing required parameter: player_id"}, to=request.sid)
+        return
+
+    #check if lobby_id is in data
+    if "lobby_id" not in data:
+        send({"error": "Missing required parameter: lobby_id"}, to=request.sid)
+        return
+    
+    #extract player_id and lobby_id and ensure correct formatting
+    player_id = str(data['player_id'])
     lobby_id = str(data['lobby_id'])
 
-    join_room(lobby_id)
-    send({"message": f"{player_id} has entered the lobby"}, to=lobby_id)
-    lobbies[lobby_id]['players'].append(player_id)
+    #check if player_id is a valid registered player
+    if player_id not in players: 
+        send({"error": "Invalid player_id"}, to=request.sid)
+        return
+    
+    #check if lobby_id is a valid existing lobby
+    if lobby_id not in lobbies:
+        send({"error": "Invalid lobby_id, does not exist"}, to=request.sid)
+        return
 
+    
+    #check if player_id is already in a lobby 
+    if players[player_id]: 
+        send({"error": f"{player_id} is already in a lobby"}, to=request.sid)
+        return
+
+    #join the socketio room associated with lobby_id
+    join_room(lobby_id)
+
+    #send message that player_id has joined lobby_id to lobby_id 
+    send({"message": f"{player_id} has entered the lobby"}, to=lobby_id)
+
+    #modify lobbies and players to include the new player_id
+    lobbies[lobby_id]['players'].append(player_id)
+    players[player_id] = lobby_id
+
+    #check if number of players exceeds max players and start game if True
     if len(lobbies[lobby_id]['players']) >= max_players:
         send({"message": "Max players reached. Game is beginning"}, to=lobby_id)
-        del lobbies[lobby_id] 
-        leave_room(lobby_id)
+        del lobbies[lobby_id] #delete the lobby after starting game 
+        leave_room(lobby_id) #make everyone leave the lobby
     
-    return {"lobby_id": lobby_id, 
-            "lobby_details": lobbies[lobby_id]['lobby_details'], 
-            "messages": lobbies[lobby_id]["messages"]}
+    #return information to the client #modify this based on frontend's needs
+    return lobbies[lobby_id]
 
 #leaving lobby
 @socketio.on("leave_lobby")
