@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
 
+# #TODO: 
+# 1. add last few invalid create, join and leave test cases 
+# 2. documentation 
+# 3. requirements file   
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -61,7 +65,7 @@ def create_lobby(data):
     
     #check if player_id is already in a lobby 
     if players[player_id]: 
-        send({"error": f"{player_id} is already in a lobby"}, to=request.sid)
+        send({"error": f"Player {player_id} is already in lobby {players[player_id]}"}, to=request.sid)
         return
 
     #create a new lobby with current_lobby_id
@@ -72,7 +76,7 @@ def create_lobby(data):
     }
 
     #associate player with lobby
-    players[player_id] = lobbies
+    players[player_id] = lobby_id
 
     #increment current_lobby_id for the next lobby
     current_lobby_id += 1
@@ -81,7 +85,7 @@ def create_lobby(data):
     join_room(lobby_id)
 
     #send message that player_id has created a lobby to lobby_id 
-    send({"message": f"{player_id} has created a lobby"}, to=lobby_id)
+    send({"message": f"Player {player_id} has created lobby {lobby_id}"}, to=lobby_id)
 
     #return information to the client #modify this based on frontend's needs
     return lobbies[lobby_id]
@@ -121,14 +125,14 @@ def join_lobby(data):
 
     #check if player_id is already in a lobby 
     if players[player_id]: 
-        send({"error": f"{player_id} is already in a lobby"}, to=request.sid)
+        send({"error": f"Player {player_id} is already in lobby {players[player_id]}"}, to=request.sid)
         return
 
     #join the socketio room associated with lobby_id
     join_room(lobby_id)
 
     #send message that player_id has joined lobby_id to lobby_id 
-    send({"message": f"{player_id} has entered the lobby"}, to=lobby_id)
+    send({"message": f"Player {player_id} has entered the lobby"}, to=lobby_id)
 
     #modify lobbies and players to include the new player_id
     lobbies[lobby_id]['players'].append(player_id)
@@ -137,6 +141,7 @@ def join_lobby(data):
     #check if number of players exceeds max players and start game if True
     if len(lobbies[lobby_id]['players']) >= max_players:
         start_game(lobby_id)
+        return 
     
     #return information to the client #modify this based on frontend's needs
     return lobbies[lobby_id]
@@ -174,14 +179,15 @@ def leave_lobby(data):
 
     #check if player_id is not in this lobby
     if players[player_id] != lobby_id: 
-        send({"error": f"{player_id} is not in {lobby_id}"}, to=request.sid)
+        
+        send({"error": f"Player {player_id} is not in lobby {lobby_id}"}, to=request.sid)
         return
 
-    #leave the socketio room associated with lobby_id
-    leave_room(lobby_id)
-    
     #send message that player_id has left lobby_id to lobby_id 
-    send({"message": f"{player_id} has left the lobby"}, to=lobby_id)
+    send({"message": f"Player {player_id} has left the lobby"}, to=lobby_id)
+
+    #make client leave the socketio room associated with lobby_id
+    leave_room(lobby_id)
 
     #modify lobbies and players to remove the player_id
     lobbies[lobby_id]['players'].remove(player_id)
