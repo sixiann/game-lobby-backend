@@ -1,10 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_socketio import join_room, leave_room, send, SocketIO
 
-# #TODO:
-# 2. documentation
-# 3. requirements file
-
 app = Flask(__name__)
 socketio = SocketIO(app)
 app.config["SECRET_KEY"] = "secret"
@@ -211,6 +207,10 @@ def leave_lobby(data):
     # delete the lobby if there are no more players
     if len(lobbies[lobby_id]["players"]) <= 0:
         del lobbies[lobby_id]
+        return
+    
+    # return information to the client #modify this based on frontend's needs
+    return lobbies[lobby_id]
 
 
 # list all lobbies
