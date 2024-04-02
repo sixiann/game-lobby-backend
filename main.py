@@ -205,8 +205,14 @@ if __name__ == "__main__":
     # 6. Testing leave_lobby and delete lobby when empty
     print("\n" + " Testing leave lobby and delete lobby when empty ".center(80, "-"))
     delete_actions = [
+        #adding another player to the lobby to test leave_lobby notifications
+        ("join_lobby", {"player_id": "4", "lobby_id": "2"}, server_url),  
+        ("join_lobby", {"player_id": "5", "lobby_id": "3"}, server_url),  
+        #everyone leaves both lobbies
         ("leave_lobby", {"player_id": "2", "lobby_id": "2"}, server_url),
         ("leave_lobby", {"player_id": "3", "lobby_id": "3"}, server_url),
+        ("leave_lobby", {"player_id": "4", "lobby_id": "2"}, server_url),  
+        ("leave_lobby", {"player_id": "5", "lobby_id": "3"}, server_url), 
     ]  # now both lobby 2 and 3 are empty and deleted
     run_tests(delete_actions)
     response = requests.get(f"{server_url}/get_lobbies")
