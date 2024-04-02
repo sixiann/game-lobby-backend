@@ -102,7 +102,7 @@ if __name__ == "__main__":
             {"player_id": "6", "lobby_id": "1"},
             server_url,
         ),  # player 6 joins lobby, reached max players
-        # lobby 1 is deleted
+        # game starts and lobby 1 is deleted
     ]
     run_tests(actions)
     print("\n" + " Testing valid cases complete ".center(80, "-") + "\n")
