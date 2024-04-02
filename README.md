@@ -122,7 +122,7 @@ Clients interact with lobbies primarily through emitting events and receiving me
 
 The script runs through several predefined test scenarios:
 
-- **Valid Create, Join, Leave, and Reach Max Players:** Tests the normal operation of creating a lobby, players joining, one player leaving, and the lobby reaching maximum capacity, triggering the game to start, showing lobby notifications. 
+- **Valid Create, Join, and Reach Max Players:** Tests the normal operation of creating a lobby, players joining, and the lobby reaching maximum capacity, triggering the game to start, showing lobby notifications. 
 
 - **Get All Lobbies:** Tests retrieving a list of all active lobbies.
 
@@ -132,7 +132,7 @@ The script runs through several predefined test scenarios:
 
 - **Invalid Leave Lobby Cases:** Tests leaving lobbies with missing or incorrect information.
 
-- **Delete Lobby When Empty:** Tests the automatic deletion of a lobby when the last player leaves.
+- **Leave Lobby and Delete Lobby When Empty:** Tests leaving lobbies and the automatic deletion of a lobby when the last player leaves.
 
 The script outputs the results of each test case to the console, including any errors returned by the server and notifications of actions taken by simulated players in lobbies. 
 
