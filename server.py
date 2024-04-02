@@ -13,8 +13,8 @@ current_lobby_id = (
 )
 
 
-# insert 20 valid registered players for dummy data, initially not in lobby
-for i in range(20):
+# insert 10 valid registered players for dummy data, initially not in lobby
+for i in range(10):
     players[str(i)] = None
 
 # maximum number of players per lobby - change if needed
@@ -208,7 +208,7 @@ def leave_lobby(data):
     if len(lobbies[lobby_id]["players"]) <= 0:
         del lobbies[lobby_id]
         return
-    
+
     # return information to the client #modify this based on frontend's needs
     return lobbies[lobby_id]
 

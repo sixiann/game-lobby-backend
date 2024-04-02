@@ -41,7 +41,7 @@ Follow these steps to set up the project environment and install necessary depen
 
 ### Player and Lobby Management:
 
-- Each player is identified by a unique player ID. At startup, 20 dummy players are registered for testing.
+- Each player is identified by a unique player ID. At startup, 10 dummy players are registered for testing.
 - A lobby can contain a maximum number of players, specified by `max_players`. The default value is 5.
 - When a lobby reaches the maximum number of players, the game starts automatically, removing all players from the lobby and deleting the lobby.
 
