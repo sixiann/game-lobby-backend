@@ -134,7 +134,7 @@ The script runs through several predefined test scenarios:
 
 - **Invalid Leave Lobby Cases:** Tests leaving lobbies with missing or incorrect information.
 
-- **Leave Lobby and Delete Lobby When Empty:** Tests leaving lobbies and the automatic deletion of a lobby when the last player leaves.
+- **Valid Leave Lobby and Delete Lobby When Empty:** Tests leaving lobbies and the automatic deletion of a lobby when the last player leaves.
 
 The script outputs the results of each test case to the console, including any errors returned by the server and notifications of actions taken by simulated players in lobbies. Note that if certain players' notifications are missing from the terminal output, it is because they are not connected to the server during the specific set of test cases. 
 
