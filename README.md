@@ -27,7 +27,7 @@ Follow these steps to set up the project environment and install necessary depen
 
     ```bash
    python server.py
-4. **Run the test script**
+4. **From a separate terminal and in the same directory, run the test script**
 
     ```bash
    python main.py
