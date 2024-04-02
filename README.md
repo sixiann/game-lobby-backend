@@ -122,7 +122,9 @@ Clients interact with lobbies primarily through emitting events and receiving me
 
 The script runs through several predefined test scenarios:
 
-- **Valid Create, Join, and Reach Max Players:** Tests the normal operation of creating a lobby, players joining, and the lobby reaching maximum capacity, triggering the game to start, showing lobby notifications. 
+- **Valid Create Lobby Cases:** Tests creating a lobby. 
+
+- **Valid Join Lobby and Reach Max Players:** Tests the normal operation of players joining, the lobby reaching maximum capacity, triggering the game to start, showing lobby notifications. 
 
 - **Get All Lobbies:** Tests retrieving a list of all active lobbies.
 
@@ -134,8 +136,7 @@ The script runs through several predefined test scenarios:
 
 - **Leave Lobby and Delete Lobby When Empty:** Tests leaving lobbies and the automatic deletion of a lobby when the last player leaves.
 
-The script outputs the results of each test case to the console, including any errors returned by the server and notifications of actions taken by simulated players in lobbies. 
-
+The script outputs the results of each test case to the console, including any errors returned by the server and notifications of actions taken by simulated players in lobbies. Note that if certain players' notifications are missing from the terminal output, it is because they are not connected to the server during the specific set of test cases. 
 
 ## Additional Notes
 - In-memory data structures are often preferred for real-time aspects of applications due to their speed and simplicity, which are crucial for operations such as players entering and leaving lobbies. This approach enables faster read and write operations compared to querying a database, thereby providing a smoother and more responsive user experience. While this choice simplifies development and testing by avoiding the overhead and complexity of database management, it's important to consider data persistence. In a production environment, a hybrid approach that uses in-memory structures for managing active state and a persistent storage solution like a database for long-term data storage and complex queries might be more appropriate. This ensures the benefits of speed and simplicity for real-time operations while also maintaining data durability and supporting scalability.

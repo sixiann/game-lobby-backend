@@ -61,68 +61,67 @@ def run_tests(actions):
 
 if __name__ == "__main__":
 
-    # 1. Testing valid create, join, and reaching max players
-    print("\n" + " Testing valid create, join, and start game ".center(80, "-"))
-    actions = [
+    #1. Test valid create lobby
+    print("\n" + " Testing create lobbies ".center(80, "-"))
+    create_actions = [
         (
             "create_lobby",
             {"player_id": "1", "lobby_details": "my first lobby"},
             server_url,
         ),  # player 1 creates lobby 1
         (
-            "join_lobby",
-            {"player_id": "2", "lobby_id": "1"},
-            server_url,
-        ),  # player 2 joins lobby
-        (
-            "join_lobby",
-            {"player_id": "3", "lobby_id": "1"},
-            server_url,
-        ),  # player 3 joins lobby
-        (
-            "join_lobby",
-            {"player_id": "4", "lobby_id": "1"},
-            server_url,
-        ),  # player 4 joins lobby
-        (
-            "join_lobby",
-            {"player_id": "5", "lobby_id": "1"},
-            server_url,
-        ),  # player 5 joins lobby, reached max players
-        # game starts and lobby 1 is deleted
-    ]
-    run_tests(actions)
-    print("\n" + " Testing valid cases complete ".center(80, "-") + "\n")
-
-
-
-
-    # 2. Create 2 lobbies for further testing, and test get_lobbies
-    # using player 2 and player 3 to easily map to lobby 2 and lobby 3.
-    # note that player 2 and player 3 are no longer in lobby 1 since the game started and lobby 1 was deleted.
-    print("\n" + " Testing get all lobbies ".center(80, "-"))
-    create_actions = [
-        (
             "create_lobby",
-            {"player_id": "2", "lobby_details": "my first lobby"},
+            {"player_id": "2", "lobby_details": "another lobby"},
             server_url,
         ),  # player 2 creates lobby 2
         (
             "create_lobby",
-            {"player_id": "3", "lobby_details": "another lobby"},
+            {"player_id": "3", "lobby_details": "3rd lobby"},
             server_url,
         ),  # player 3 creates lobby 3
     ]
     run_tests(create_actions)
+    print("\n" + " Testing create lobbies complete ".center(80, "-"))
+
+
+    #2. Test valid join lobby, reach max players, start game
+    print("\n" + " Testing valid join, and start game ".center(80, "-"))
+    actions = [
+        (
+            "join_lobby",
+            {"player_id": "4", "lobby_id": "1"},
+            server_url,
+        ),  # player 4 joins lobby 1
+        (
+            "join_lobby",
+            {"player_id": "5", "lobby_id": "1"},
+            server_url,
+        ),  # player 5 joins lobby 1
+        (
+            "join_lobby",
+            {"player_id": "6", "lobby_id": "1"},
+            server_url,
+        ),  # player 6 joins lobby 1
+        (
+            "join_lobby",
+            {"player_id": "7", "lobby_id": "1"},
+            server_url,
+        ),  # player 7 joins lobby, reached max players
+        # game starts and lobby 1 is deleted
+    ]
+    run_tests(actions)
+    print("\n" + " Testing valid join, and start game complete ".center(80, "-") + "\n")
+
+
+    #3. Testing get_lobbies
+    print("\n" + " Testing get all lobbies ".center(80, "-"))
     response = requests.get(f"{server_url}/get_lobbies")
     print("\nResponse from /get_lobbies:")
     print(response.status_code, response.json())
     print("\n" + " Testing get all lobbies complete ".center(80, "-"))
 
 
-
-
-    # 3. Testing invalid create lobbies
+    #4. Testing invalid create lobbies
     print("\n" + " Testing invalid create lobby cases".center(80, "-"))
     invalid_create_actions = [
         (
@@ -148,7 +147,7 @@ if __name__ == "__main__":
 
 
 
-    # 4. Testing invalid join lobbies
+    # 5. Testing invalid join lobbies
     print("\n" + " Testing invalid join lobby ".center(80, "-"))
     invalid_join_actions = [
         ("join_lobby", {"lobby_id": "1"}, server_url),  # missing player_id
@@ -175,7 +174,7 @@ if __name__ == "__main__":
 
 
 
-    # 5. Testing invalid leave lobbies
+    # 6. Testing invalid leave lobbies
     print("\n" + " Testing invalid leave lobby ".center(80, "-"))
     invalid_leave_actions = [
         ("leave_lobby", {"lobby_id": "1"}, server_url),  # missing player_id
@@ -202,10 +201,10 @@ if __name__ == "__main__":
 
 
 
-    # 6. Testing leave_lobby and delete lobby when empty
+    # 7. Testing leave_lobby and delete lobby when empty
     print("\n" + " Testing leave lobby and delete lobby when empty ".center(80, "-"))
     delete_actions = [
-        #adding another player to the lobby to test leave_lobby notifications
+        #adding another player to the lobby to show leave_lobby notifications
         ("join_lobby", {"player_id": "4", "lobby_id": "2"}, server_url),  
         ("join_lobby", {"player_id": "5", "lobby_id": "3"}, server_url),  
         #everyone leaves both lobbies
