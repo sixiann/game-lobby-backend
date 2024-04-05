@@ -5,7 +5,7 @@ This is a simple backend system that manages game lobbies for a multiplayer game
 ## Prerequisites
 
 Before you begin, ensure you have the following installed on your system:
-- Python 3.6 or newer
+- Python 3.10 or newer
 - pip (Python package installer)
 
 ## Setup Instructions
